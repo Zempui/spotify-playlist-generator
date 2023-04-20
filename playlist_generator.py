@@ -7,7 +7,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from spotipy import util
 import argparse
-from colorama import Fore
+from tqdm import tqdm
 
 
 def divide_array(array:list, step:int):
@@ -56,30 +56,30 @@ def track_search(client_id:str, client_secret:str, redirect_uri:str, scope:str, 
     
     track_list:list = []
 
-    print(f"searching for artist '{artist_name}'...\n")
-    print("Tracks found:")
+    #print(f"searching for artist '{artist_name}'...\n")
+    #print("Tracks found:")
     artist:dict = sp.search(q='artist:' + artist_name, type='artist')['artists']['items']
     search_result_1:dict={}
     search_result_2:dict={}
 
     if len(artist)>0:
-        print("artist found\t: "+artist[0]['name'])
+        #print("artist found\t: "+artist[0]['name'])
         if m == "songs" or m=="both":
             search_result_1 = sp.artist_top_tracks(artist[0]["uri"])
             for track in search_result_1['tracks'][:n]:
-                print('track\t: %-30.30s\tid: %s' % (track['name'], track["id"]))
+                #print('track\t: %-30.30s\tid: %s' % (track['name'], track["id"]))
                 track_list.append(track["id"])
         
         if m == "recommendations" or m == "both":
             search_result_2 = sp.recommendations(seed_artists=[artist[0]['id']], limit=10)  
             for track in search_result_2['tracks'][:n]:
-                print('track\t: %-30.30s\tid: %s' % (track['name'], track["id"]))
+                #print('track\t: %-30.30s\tid: %s' % (track['name'], track["id"]))
                 track_list.append(track["id"])              
         
         
-        print()
+        #print()
     else:
-        print("artist not found :(\n")
+        print(f"artist not found '{artist_name}' :(\n")
     return (track_list)
 
 def add_tracks(client_id:str, client_secret:str, redirect_uri:str, scope:str, username:str, track_list:list) -> None:
@@ -112,7 +112,7 @@ def playlist_generate(client_id:str, client_secret:str, redirect_uri:str, scope:
     found:bool = False
     for playlist in sp.current_user_playlists()["items"]:
         if playlist["name"]=="Generated playlist" and not found:
-            for tl in divide_array(track_list, 80): # To surpass the limitation of 100 tracks per request
+            for tl in tqdm(divide_array(track_list, 80), desc="Adding tracks to playlist"): # To surpass the limitation of 100 tracks per request
                 add_tracks(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope=scope, username=username,track_list=tl)
             found = True
         elif playlist["name"]=="Generated playlist" and found:
@@ -144,7 +144,7 @@ def main(n:int, m:str) -> None:
         track_list:list = []
 
         
-        for artist in config["artists"]:
+        for artist in tqdm(config["artists"], desc="Searching for artists"):
             (tl_aux)=track_search(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri, scope=scope, username=username, artist_name=artist, n=n, m=m)
             for i in tl_aux:
                 track_list.append(i)
