@@ -1,4 +1,4 @@
-# spotify-playlist-generator
+# Spotify Playlist Generator
 A tool to generate playlists containing the 'n' most popular tracks of several artists (up to 10 tracks each).
 ## Usage
 In order to use this tool, you will have to download the current repository and install the latest version of Python. After that, just execute the followind command while located at the parent folder of the repository ([...]/spotify-playlist-generator/)
