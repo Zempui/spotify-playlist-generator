@@ -13,3 +13,16 @@ Once dependencies have been taken care of, you should be good to go! Just create
 Besides the paremeters specified in the `config.yml` file, when executing the script, a list of optional arguments may be passed to make it have a certain behaviour:
 - `-n`, `--number`: the number of tracks of each artist to include (capped at 10).
 - `-m`, `--mode`: wether you want your generated playlist to be based solely on songs by the artists you selected, you want it solely based on recommendations or you want a mixture of both.
+
+## Docker
+In order to run this project using Docker you should run the following command:
+```bash
+docker-compose up -d
+```
+or
+
+```bash
+docker compose up -d
+```
+Once you hace executed the previous command access to http://localhost:5000
+Be aware of the docker-compose.yml file. If you want to develop using docker just comment the deployment command as said in the file.

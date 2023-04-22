@@ -5,5 +5,7 @@ WORKDIR /app
 
 COPY . /app
 
+RUN apk add git #For development
+
 RUN pip install -r requirements.txt
 
