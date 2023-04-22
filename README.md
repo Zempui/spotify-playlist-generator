@@ -25,4 +25,5 @@ or
 docker compose up -d
 ```
 Once you hace executed the previous command access to http://localhost:5000
+
 Be aware of the docker-compose.yml file. If you want to develop using docker just comment the deployment command as said in the file.
