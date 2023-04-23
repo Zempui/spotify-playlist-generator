@@ -1,1 +1,2 @@
 config_template.yml
+__pycache__/*
