@@ -21,7 +21,7 @@ class Arguments(TypedDict):
 @dataclass
 class PlaylistGenerator():
     auth_manager: SpotifyOAuth = None
-    args: Arguments = None
+    username_id: str = ""
 
     def divide_array(self, array:list, step:int) -> list:
         """
@@ -77,12 +77,12 @@ class PlaylistGenerator():
         for playlist in sp.current_user_playlists()["items"]:
             if playlist["name"]=="Generated playlist" and not found:
 
-                sp.user_playlist_add_tracks(user=self.args["username"], tracks=track_list, playlist_id=playlist["id"])
+                sp.user_playlist_add_tracks(user=self.username_id, tracks=track_list, playlist_id=playlist["id"])
                 found = True
             elif playlist["name"]=="Generated playlist" and found:
                 break
 
-    def playlist_generate(self, args:Arguments, track_list:list) -> None:
+    def playlist_generate(self, track_list:list) -> None:
         """
         Function that generates a playlist with a given track list
         """
@@ -90,7 +90,7 @@ class PlaylistGenerator():
 
         description = f"""An automatically generated 🤖 playlist. ⚙️ Generated using Zempui's playlist generator"""
         
-        sp.user_playlist_create(user=args["username"], name="Generated playlist", public=True, description=description)
+        sp.user_playlist_create(user=self.username_id, name="Generated playlist", public=True, description=description)
 
 
         found:bool = False
@@ -155,7 +155,7 @@ def main(n:int, m:str) -> None:
         auth_manager: SpotifyOAuth = SpotifyOAuth(client_id=args["client_id"], client_secret=args["client_secret"], redirect_uri=args["redirect_uri"], scope=args["scope"])
         util.prompt_for_user_token(username=args["username"], scope=args["scope"], client_id=args["client_id"], client_secret=args["client_secret"], redirect_uri=args["redirect_uri"])
 
-        playlist_generator = PlaylistGenerator(auth_manager=auth_manager, args=args)
+        playlist_generator = PlaylistGenerator(auth_manager=auth_manager, username_id=args["username"])
         for artist in tqdm(config["artists"], desc="Searching for artists"):
             (tl_aux)=playlist_generator.track_search(artist_name=artist, n=n, m=m)
             for i in tl_aux:
