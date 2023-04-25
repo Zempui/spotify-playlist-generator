@@ -1,6 +1,9 @@
+from dataclasses import asdict
 from flask import Flask, request, redirect
 import yaml
 from spotipy.oauth2 import SpotifyOAuth
+from error import APIError
+from playlist_generator import PlaylistGenerator
 from spotify_service import SpotifyService
 
 app = Flask(__name__)
@@ -21,7 +24,7 @@ def home():
 @app.route('/login')
 def login():
     auth_url = SPOTIFY_OAUTH.get_authorize_url()
-    return redirect(auth_url)
+    return {"auth_url": auth_url}
 
 @app.route('/callback')
 def callback():
@@ -29,24 +32,23 @@ def callback():
     token_info = SPOTIFY_OAUTH.get_access_token(code)
     access_token = token_info['access_token']
     username = SpotifyService.get_current_user()['id']
-    return f'Access token obtained: {access_token} <br>Welcome {username}! <a href="/playlists">Get your playlists</a>'
+    SpotifyService.playlist_generator = PlaylistGenerator(auth_manager=SPOTIFY_OAUTH, username_id=SpotifyService.get_current_user()['id'])
+    return {"access_token": access_token, "username": username}
 
-@app.route('/playlists')
-def playlists():
-    try:
-        playlists = SpotifyService.get_user_playlists()["items"]
-    except Exception as e:
-        return redirect("/login")
-    response = "<ul>"
-    for playlist in playlists:
-        response += f"<li>{playlist['name']}</li>"
-    response += "</ul><br><a href='/logout''>Logout</a>"
-    return response
+@app.route('/search_artist')
+def search_artist():
+    artist = request.args.get('query')
+    if not artist:
+        return asdict(APIError('No query provided', 400))
+    return SpotifyService.search_artist(artist)
 
-@app.route("/logout")
-def logout():
-    response = redirect("https://accounts.spotify.com/es-ES/status")
-    return response 
+@app.route('/create_playlist', methods=['POST'])
+def create_playlist():
+    artists = request.json.get('artists')
+    if not artists:
+        return asdict(APIError('No artists provided', 400))
+    SpotifyService.create_playlist(artists)
+    return {'message': 'Playlist created successfully'}
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
