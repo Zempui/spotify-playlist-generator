@@ -33,7 +33,7 @@ class PlaylistGenerator():
             result.append(array[x:x+step])
         return result
 
-    def track_search(self, artist_name:str, n:int, m:str) -> tuple:
+    def track_search(self, artist_name:str, n:int, m:str) -> list:
         """
         Function that searched for tracks by a certain artist, recommended based on a certain artist or both.
         It returns a tuple with a list of the tracks and a string containing all the songs that have been found,
@@ -66,7 +66,7 @@ class PlaylistGenerator():
             #print()
         else:
             print(f"artist not found '{artist_name}' :(\n")
-        return (track_list)
+        return track_list
 
     def add_tracks(self, track_list:list) -> None:
         """
@@ -157,7 +157,7 @@ def main(n:int, m:str) -> None:
 
         playlist_generator = PlaylistGenerator(auth_manager=auth_manager, username_id=args["username"])
         for artist in tqdm(config["artists"], desc="Searching for artists"):
-            (tl_aux)=playlist_generator.track_search(artist_name=artist, n=n, m=m)
+            tl_aux=playlist_generator.track_search(artist_name=artist, n=n, m=m)
             for i in tl_aux:
                 track_list.append(i)
 
