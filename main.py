@@ -6,7 +6,7 @@ from spotify_service import SpotifyService
 app = Flask(__name__)
 
 def load_oauth_config():
-    with open('config_template.yml', 'r') as f:
+    with open('config.yml', 'r') as f:
         config = yaml.safe_load(f)
     sp = SpotifyOAuth(client_id=config["client_id"], client_secret=config["client_secret"], redirect_uri=config["redirect_uri"], scope=config["scope"])
     return sp
