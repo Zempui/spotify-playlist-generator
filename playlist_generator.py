@@ -54,13 +54,13 @@ class PlaylistGenerator():
                 search_result_1 = sp.artist_top_tracks(artist[0]["uri"])
                 for track in search_result_1['tracks'][:n]:
                     #print('track\t: %-30.30s\tid: %s' % (track['name'], track["id"]))
-                    track_list.append(track["id"])
+                    track_list.append(track)
             
             if m == "recommendations" or m == "both":
                 search_result_2 = sp.recommendations(seed_artists=[artist[0]['id']], limit=n)  
                 for track in search_result_2['tracks'][:n]:
                     #print('track\t: %-30.30s\tid: %s' % (track['name'], track["id"]))
-                    track_list.append(track["id"])              
+                    track_list.append(track)              
             
             
             #print()
@@ -159,18 +159,11 @@ def main(n:int, m:str) -> None:
         for artist in tqdm(config["artists"], desc="Searching for artists"):
             tl_aux=playlist_generator.track_search(artist_name=artist, n=n, m=m)
             for i in tl_aux:
-                track_list.append(i)
+                track_list.append(i["id"])
 
         #[...]
         playlist_generator.playlist_generate(track_list=track_list)
         print("Done!")
-
-        
-
-
-        
-        
-        
 
 if __name__=="__main__":
     n:int = getArgs()["n"]
