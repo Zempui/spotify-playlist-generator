@@ -1,4 +1,0 @@
-spotipy
-pyyaml 
-tqdm
-Flask

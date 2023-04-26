@@ -1,10 +1,10 @@
 version: "3.3"
 services:
   python:
-    build: .
+    build: ./python/
     ports:
       - "5000:5000"
     volumes:
-      - .:/app
+      - ./python:/app
     # command: tail -f /dev/null # This line is for development only, comment it otherwise
     command: python /app/main.py # This line is for deployment only, comment it otherwise
