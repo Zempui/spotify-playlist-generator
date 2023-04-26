@@ -1,5 +1,5 @@
 from dataclasses import asdict
-from flask import Flask, request, redirect
+from flask import Flask, request
 import yaml
 from spotipy.oauth2 import SpotifyOAuth
 from error import APIError
@@ -40,15 +40,21 @@ def search_artist():
     artist = request.args.get('query')
     if not artist:
         return asdict(APIError('No query provided', 400))
-    return SpotifyService.search_artist(artist)
+    try:
+        return SpotifyService.search_artist(artist)
+    except Exception as e:
+        return asdict(APIError(str(e), 500))
 
 @app.route('/create_playlist', methods=['POST'])
 def create_playlist():
     artists = request.json.get('artists')
     if not artists:
         return asdict(APIError('No artists provided', 400))
-    SpotifyService.create_playlist(artists)
-    return {'message': 'Playlist created successfully'}
+    try:
+        SpotifyService.create_playlist(artists)
+        return {'message': 'Playlist created successfully'}
+    except Exception as e:
+        return asdict(APIError(str(e), 500))
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

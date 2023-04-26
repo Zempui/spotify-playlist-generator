@@ -1,6 +1,5 @@
 from dataclasses import asdict
 import spotipy
-
 from error import APIError
 from playlist_generator import PlaylistGenerator
 
@@ -25,7 +24,7 @@ class SpotifyService():
                 raise e
 
     @staticmethod
-    def search_artist(artist_name):
+    def search_artist(artist_name: str):
         if SpotifyService.playlist_generator is None:
             return asdict(APIError('You must login first', 403))
         
@@ -35,7 +34,7 @@ class SpotifyService():
         return artists
 
     @staticmethod
-    def create_playlist(artists):
+    def create_playlist(artists: list):
         if SpotifyService.playlist_generator is None:
             return asdict(APIError('You must login first', 403))
         songs = []
@@ -45,7 +44,7 @@ class SpotifyService():
         SpotifyService.playlist_generator.playlist_generate(songs)
     
     @staticmethod
-    def search_artist_songs(artist_name):
+    def search_artist_songs(artist_name: str):
         if SpotifyService.playlist_generator is None:
             return asdict(APIError('You must login first', 403))
         songs = SpotifyService.playlist_generator.track_search(artist_name, 10, "songs")
