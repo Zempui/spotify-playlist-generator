@@ -8,3 +8,12 @@ services:
       - ./python:/app
     # command: tail -f /dev/null # This line is for development only, comment it otherwise
     command: python /app/main.py # This line is for deployment only, comment it otherwise
+  angular:
+    build: ./angular/
+    ports:
+      - "4200:4200"
+      - "80:80"
+    volumes:
+      - ./angular:/app
+    # command: tail -f /dev/null # This line is for development only, comment it otherwise
+    command: ng serve --port 80 --host 127.0.0.1
