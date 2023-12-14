@@ -13,7 +13,7 @@ class Entry(typing.TypedDict):
 #   Classes
 
 
-class ScrollableArtistFrame(customtkinter.CTkScrollableFrame): # TODO: Change checkboxes for CTkFrames
+class ScrollableArtistFrame(customtkinter.CTkScrollableFrame):
     """
     Class that represents a Scrollable frame where the artist names are contained
     """
@@ -29,7 +29,20 @@ class ScrollableArtistFrame(customtkinter.CTkScrollableFrame): # TODO: Change ch
             self.artist_entries.append(artist_entry)
     
     def refresh(self):
-        pass # TODO
+        """
+        Method that will refresh the values displayed in the artist list.\n
+        The values of the new elements of the list are taken from the "_artists" global variable
+        """
+        for i in self.artist_entries:
+            i.grid_remove()
+        
+        for i in range(len(_artists)):
+            artist_entry = ArtistEntry(self, position=i, frame=self)
+            artist_entry.grid(row=i, column=0, padx=10, pady=(10, 0), sticky="w")
+            self.artist_entries.append(artist_entry)
+        
+        self._scrollbar.set(0,0)
+
 
 class ArtistEntry(customtkinter.CTkFrame):
     """
@@ -61,10 +74,16 @@ class ArtistEntry(customtkinter.CTkFrame):
         self.remove_button = customtkinter.CTkButton(self, text="❌", command=self.remove, fg_color="transparent", width=height-6, height=height-6)
         self.remove_button.grid(row=0, column=4, padx=0, pady=0, sticky="e", columnspan=1)
     
-    def edit(self, new_artist:str) -> None:
+    def edit_artist_popup(self) -> typing.Union[str,None]:
+        dialog = customtkinter.CTkInputDialog(text="Artist name:", title="Edit an entry")
+        return dialog.get_input()
+
+    def edit(self) -> None:
         try:
-            _artists[self.position] = str(new_artist)
-            self.frame.refresh()
+            new_artist:str = self.edit_artist_popup()
+            if new_artist is not None:
+                _artists[self.position] = str(new_artist)
+                self.frame.refresh()
         except Exception as e:
             print(f"ERROR: {e}")
 
@@ -145,16 +164,17 @@ class IntSpinbox(customtkinter.CTkFrame):
     def set(self, value: int):
         if value<=10 and value>=0:
             self.entry.delete(0, "end")
-            self.entry.insert(0, str(int(value)))
+            self.entry.insert(0, int(value))
 
 class AddArtistButton(customtkinter.CTkFrame):
     def __init__(self, *args,
+                 master:customtkinter.CTk,
                  width: int = 100,
                  height: int = 32,
-                 button_callback:typing.Callable = None,
                  **kwargs):
         super().__init__(*args, width=width, height=height, **kwargs)
         
+        self.master:App=master
         self.grid_columnconfigure((0,1,2),weight=1) # Lable expands
         self.grid_columnconfigure(3,weight=0) # Button does not expand
 
@@ -162,11 +182,28 @@ class AddArtistButton(customtkinter.CTkFrame):
         self.label.grid(row=0,column=0, padx=10, pady=0, sticky="wsn")
         self.entry=customtkinter.CTkEntry(self, placeholder_text="artist name")
         self.entry.grid(row=0, column=1,padx=10, pady=0, sticky="ew", columnspan=2)
-        self.button=customtkinter.CTkButton(self, text="+", command=button_callback, width=height-6, height=height-6)
+        self.button=customtkinter.CTkButton(self, text="+", command=self.add_button_callback, width=height-6, height=height-6)
         self.button.grid(row=0,column=3, padx=10, pady=0, sticky="wesn")
     
+    def clear(self) -> None:
+        """
+        Function that clears the value in the Add Artist Entrybox
+        """
+        self.entry.delete(0, "end")
+
     def get(self) -> typing.Union[str, None]:
         return str(self.entry.get())
+    
+    def add_button_callback(self) -> None:
+        """
+        Callback function that adds a new artist to the list
+        """
+        global _artists
+        new_artist:typing.Union[str, None] = self.get()
+        if new_artist is not None: #OK!
+            self.clear()
+            _artists.append(str(new_artist))
+            self.master.scrollable_artist_frame.refresh()
 
 class HelpWindow(customtkinter.CTkToplevel):
     """
@@ -316,10 +353,10 @@ class App(customtkinter.CTk):
         self.spinbox_n=IntSpinbox(self)
         self.spinbox_n.grid(row=6,column=3, padx=10, pady=0, sticky="we")
 
-        self.scrollable_checkbox_frame = ScrollableArtistFrame(self, title="Artists")
-        self.scrollable_checkbox_frame.grid(row=7, column=0, padx=10, pady=(10, 0), sticky="nsew", columnspan=4)
+        self.scrollable_artist_frame = ScrollableArtistFrame(self, title="Artists")
+        self.scrollable_artist_frame.grid(row=7, column=0, padx=10, pady=(10, 0), sticky="nsew", columnspan=4)
 
-        self.add_artist = AddArtistButton(self, button_callback=self.add_button_callback, fg_color="transparent")
+        self.add_artist = AddArtistButton(self, master=self, fg_color="transparent")
         self.add_artist.grid(row=8, column=0, padx=10, pady=(10, 0), sticky="nsew", columnspan=3)
 
         self.generate_button = customtkinter.CTkButton(self, text="Generate", command=self.generate_button_callback)
@@ -350,13 +387,7 @@ class App(customtkinter.CTk):
             self.entries[i]["entry"].delete(0,customtkinter.END)
         self.spinbox_n.set(5)
         _artists=[]
-        pass # TODO
-
-    def add_button_callback(self) -> None:
-        """
-        Callback function that adds a new artist to the list
-        """
-        pass # TODO
+        self.scrollable_artist_frame.refresh()
 
 if __name__=="__main__":
     App().mainloop()
