@@ -1,3 +1,3 @@
 spotipy
-pyyaml 
-tqdm
+customtkinter
+packaging
