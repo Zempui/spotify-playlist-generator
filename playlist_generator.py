@@ -3,6 +3,8 @@ from spotipy.oauth2 import SpotifyOAuth
 from spotipy import util
 from typing import TypedDict
 import typing, customtkinter
+from os import getcwd
+import sys
 
 #   GLOBAL VARIABLES
 
@@ -357,6 +359,10 @@ class App(customtkinter.CTk):
         super().__init__()
 
         self.title("Spotify Playlist Generator")
+        #self.iconbitmap(r"C:\Users\alvar\Documents\Projects\spotify-playlist-generator\icon-32.ico")
+        #self.after(201, lambda :self.iconbitmap(f'{getcwd()}\\icon-32.ico'))
+        self.iconbitmap(sys.executable)
+        
         self.geometry(f"{self._width}x{self._height}")
         self.maxsize(width=self._width, height=self._height)
         self.minsize(width=self._width, height=self._height)
@@ -420,6 +426,12 @@ class App(customtkinter.CTk):
         n:int = self.spinbox_n.get()
         print(f"Playlist name:\t{playlist_name}\nClient Id:\t{client_id}\nClient Secret:\t{client_secret}\nUser Id:\t{user_id}\nMode:\t\t{mode}\nn:\t\t{n}\nArtistas:\t{_artists}")
         
+        #TODO: Do omething like this so that user ID is only asked for once
+        # sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=args["client_id"], 
+        #                                                client_secret=args["client_secret"],
+        #                                                redirect_uri=args["redirect_uri"],
+        #                                                scope=args["scope"]))
+        # args["username"] = sp.current_user()["id"]
         args:Arguments = {"scope"           :   "user-library-read, user-library-modify, playlist-modify-public",
                           "client_id"       :   str(client_id),
                           "client_secret"   :   str(client_secret),
@@ -518,6 +530,7 @@ def track_search(args:Arguments, artist_name:str, n:int, m:str) -> tuple:
     as well as the name of the artist that has been found.
     """
     sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=args["client_id"], client_secret=args["client_secret"],redirect_uri=args["redirect_uri"],scope=args["scope"]))
+    args["username"] = sp.current_user()["id"] # TODO: check when does this not work
     util.prompt_for_user_token(username=args["username"], scope=args["scope"], client_id=args["client_id"], client_secret=args["client_secret"], redirect_uri=args["redirect_uri"])
     
     track_list:list = []
