@@ -202,7 +202,10 @@ class AddArtistButton(customtkinter.CTkFrame):
         self.entry.delete(0, "end")
 
     def get(self) -> typing.Union[str, None]:
-        return str(self.entry.get())
+        result = str(self.entry.get())
+        if result == "":
+            result = None
+        return result
     
     def add_button_callback(self) -> None:
         """
@@ -259,6 +262,33 @@ to be added into the playlist
 
 © Álvaro de Castro (@Zempui), 2023""")
         self.description.pack(padx=0, pady=0)
+
+class ErrorWindow(customtkinter.CTkToplevel):
+    """
+    Pop-up window where information about an error is presented.
+    """
+    def __init__(self, text:str, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.width, self.height = 420, 125
+        self.geometry(f"{self.width}x{self.height}")
+        #self.maxsize(width=self.width, height=self.height)
+        self.minsize(width=self.width, height=self.height)
+
+        self.title("ERROR")
+
+        self.header = customtkinter.CTkLabel(self, text="⚠ ERROR")
+        self.header.pack(padx=20, pady=20)
+        self.header.cget("font").configure(size=16)
+
+        self.description = customtkinter.CTkLabel(self, text=text)
+        self.description.pack(padx=0, pady=0)
+    
+    def edit_msg(self,text:str):
+        try:
+            if text is not None:
+                self.description.configure(text=text)
+        except Exception as e:
+            print(f"ERROR: {e}")
 
 class ProgressBar(customtkinter.CTkFrame):
     """
@@ -335,6 +365,8 @@ class App(customtkinter.CTk):
         self.grid_columnconfigure((1,3), weight=2)
         self.grid_rowconfigure((0,1,2,3,4,5,6,7,8,9), weight=2)
 
+        self.error_window:ErrorWindow = None
+
         self.label_title = customtkinter.CTkLabel(self, text="Spotify Playlist Generator", fg_color="transparent")
         self.label_title.grid(row=0,column=0, padx=10, pady=0, sticky="ew", columnspan=4)
         self.label_title.cget("font").configure(size=16, underline=True)
@@ -393,18 +425,68 @@ class App(customtkinter.CTk):
                           "client_secret"   :   str(client_secret),
                           "redirect_uri"    :   "http://localhost:8080",
                           "username"        :   str(user_id)}
-        if(None not in [playlist_name,client_id,client_secret,user_id,mode,n]):
+        
+        error:set[bool, str] = (False,"")
+        if(playlist_name!="" and 
+            client_id!="" and 
+            client_secret!="" and 
+            user_id!="" and 
+            mode!="" and 
+            n!="" and
+            _artists != [] and
+            None not in [playlist_name,client_id,client_secret,user_id,mode,n]):
+
             track_list:list = []
+            try:
+                for artist in range(len(_artists)):
+                    (tl_aux)=track_search(args=args, artist_name=_artists[artist], n=n, m=mode)
+                    for i in tl_aux:
+                        track_list.append(i)
+                    self.progressbar.set_progress(float((artist+1)/len(_artists)))
 
-            for artist in range(len(_artists)):
-                (tl_aux)=track_search(args=args, artist_name=_artists[artist], n=n, m=mode)
-                for i in tl_aux:
-                    track_list.append(i)
-                self.progressbar.set_progress(float((artist+1)/len(_artists)))
+                playlist_generate(args=args, track_list=track_list, name=playlist_name)
+                self.progressbar.set_progress(float(2.0))
+                print("Done!")
+            except Exception as e:
+                error = (True, f"An exception occurred: {e}\n")
+        elif _artists==[]:
+            error=(True,"The artist list is empty.\n")
+        else:
+            error=(True,"")
+        
 
-            playlist_generate(args=args, track_list=track_list, name=playlist_name)
-            self.progressbar.set_progress(float(2.0))
-            print("Done!")
+        if error[0]: #TODO: Adapt for incorrect parameters
+            error_list:dict = {"missing":False, "Nan":False}
+            # ERROR TYPES:
+            #   missing: one or more parameters are missing
+            #   NaN: the value introduced in "number of songs" is not a number
+            error_msg:str=error[1]
+
+            missing:set = set()
+            for i,j in {"Playlist name":playlist_name,"Client ID":client_id,
+                        "Client Secret":client_secret,"User ID":user_id,
+                        "Mode":mode,"Number of songs (n)":n}.items():
+                if j=="":
+                    missing.add(i)
+                    error_list["missing"] = True
+
+            if n == None:
+                error_list["Nan"]=True
+
+            if error_list["missing"]:
+                error_msg += "Missing parameters: "
+                for param in missing:
+                    error_msg += f"{param}, "
+                error_msg = error_msg[:-2] + "\n"
+            if error_list["Nan"]:
+                error_msg += "Invalid value detected in 'Number of tracks'"
+                
+
+            if self.error_window is None or not self.error_window.winfo_exists():
+                self.error_window = ErrorWindow(text=error_msg) 
+            else:
+                self.error_window.edit_msg(error_msg)
+                self.error_window.focus()
 
     def clear_button_callback(self) -> None:
         """
