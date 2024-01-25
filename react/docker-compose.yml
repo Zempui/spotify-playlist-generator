@@ -1,0 +1,28 @@
+version: "3.3"
+services:
+  python:
+    image: python:3.12.0a7-alpine3.17
+    volumes:
+      - ../python/pgen:/home/pgen
+      - ../python:/temp
+    command: sh -c "cd /temp && pip install -r requirements.txt && cd /home/pgen && python /home/pgen/main.py"
+    networks:
+      dev_network:
+        ipv4_address: 10.4.0.7
+  react:
+    image: node:20.5.1-alpine3.18
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./pgen:/home/pgen
+    command: tail -f /dev/null
+    networks:
+      dev_network:
+        ipv4_address: 10.4.0.8
+
+networks:
+  dev_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.4.0.0/16

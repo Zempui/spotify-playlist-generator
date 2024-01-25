@@ -2,18 +2,21 @@ version: "3.3"
 services:
   python:
     build: ./python/
-    ports:
-      - "5000:5000"
-    volumes:
-      - ./python:/app
-    # command: tail -f /dev/null # This line is for development only, comment it otherwise
-    command: python /app/main.py # This line is for deployment only, comment it otherwise
+    networks:
+      network:
+        ipv4_address: 10.5.0.7
   angular:
-    build: ./angular/
+    build: ./react/
     ports:
-      - "4200:4200"
       - "80:80"
-    volumes:
-      - ./angular:/app
-    # command: tail -f /dev/null # This line is for development only, comment it otherwise
-    command: ng serve --port 80 --host 127.0.0.1
+      - "443:443"
+    networks:
+      network:
+        ipv4_address: 10.5.0.8
+
+networks:
+  network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
