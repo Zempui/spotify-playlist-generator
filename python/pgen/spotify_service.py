@@ -8,45 +8,41 @@ class SpotifyService():
     auth = None
     playlist_generator: PlaylistGenerator = None
 
-    @staticmethod
-    def get_current_user():
+    def get_current_user(self):
         try:
-            current_user = spotipy.Spotify(auth_manager = SpotifyService.auth).current_user()
+            current_user = spotipy.Spotify(auth_manager = self.auth).current_user()
             return current_user
         except spotipy.SpotifyException as e:
             print("Error obtaining current user")
             if e.http_status == 400:
-                SpotifyService.auth.refresh_access_token(SpotifyService.auth.get_cached_token()['refresh_token'])
-                sp = spotipy.Spotify(auth_manager = SpotifyService.auth)
+                self.auth.refresh_access_token(self.auth.get_cached_token()['refresh_token'])
+                sp = spotipy.Spotify(auth_manager = self.auth)
                 user_info = sp.current_user()
                 return user_info
             else:
                 raise e
 
-    @staticmethod
-    def search_artist(artist_name: str):
-        if SpotifyService.playlist_generator is None:
+    def search_artist(self, artist_name: str):
+        if self.playlist_generator is None:
             return asdict(APIError('You must login first', 403))
         
-        sp = spotipy.Spotify(auth_manager = SpotifyService.auth)
+        sp = spotipy.Spotify(auth_manager = self.auth)
         artists = sp.search(q=artist_name, type="artist", limit=10)
         artists = [{"name": artist["name"], "id": artist["id"]} for artist in artists["artists"]["items"]]
         return artists
 
-    @staticmethod
-    def create_playlist(artists: list):
-        if SpotifyService.playlist_generator is None:
+    def create_playlist(self, artists: list):
+        if self.playlist_generator is None:
             return asdict(APIError('You must login first', 403))
         songs = []
         for artist in artists:
-            songs.extend(SpotifyService.search_artist_songs(artist))
+            songs.extend(self.search_artist_songs(artist))
 
-        SpotifyService.playlist_generator.playlist_generate(songs)
+        self.playlist_generator.playlist_generate(songs)
     
-    @staticmethod
-    def search_artist_songs(artist_name: str):
-        if SpotifyService.playlist_generator is None:
+    def search_artist_songs(self, artist_name: str):
+        if self.playlist_generator is None:
             return asdict(APIError('You must login first', 403))
-        songs = SpotifyService.playlist_generator.track_search(artist_name, 10, "songs")
+        songs = self.playlist_generator.track_search(artist_name, 10, "songs")
         songs = [song["id"] for song in songs]
         return songs

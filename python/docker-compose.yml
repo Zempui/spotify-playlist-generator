@@ -6,7 +6,7 @@ services:
       - ./pgen:/home/pgen
       - .:/temp
     ports:
-      - "5000:5000"
+      - "6000:5000"
     command: sh -c "cd /temp && pip install -r requirements.txt && cd /home/pgen && tail -f /dev/null"
     networks:
       dev_network:
