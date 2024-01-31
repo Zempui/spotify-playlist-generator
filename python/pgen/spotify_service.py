@@ -31,14 +31,14 @@ class SpotifyService():
         artists = [{"name": artist["name"], "id": artist["id"]} for artist in artists["artists"]["items"]]
         return artists
 
-    def create_playlist(self, artists: list):
+    def create_playlist(self, artists: list, name):
         if self.playlist_generator is None:
             return asdict(APIError('You must login first', 403))
         songs = []
         for artist in artists:
             songs.extend(self.search_artist_songs(artist))
 
-        self.playlist_generator.playlist_generate(songs)
+        self.playlist_generator.playlist_generate(songs, name)
     
     def search_artist_songs(self, artist_name: str):
         if self.playlist_generator is None:

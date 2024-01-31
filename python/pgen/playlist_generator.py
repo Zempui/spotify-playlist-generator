@@ -68,21 +68,21 @@ class PlaylistGenerator():
             print(f"artist not found '{artist_name}' :(\n")
         return track_list
 
-    def add_tracks(self, track_list:list) -> None:
+    def add_tracks(self, track_list:list, name: str) -> None:
         """
         Function that adds tracks to a given playlist. It's used to bypass the limit of 100 tracks added at a time.
         """
         sp = spotipy.Spotify(auth_manager=self.auth_manager)
         found:bool = False
         for playlist in sp.current_user_playlists()["items"]:
-            if playlist["name"]=="Generated playlist" and not found:
+            if playlist["name"]==name and not found:
 
                 sp.user_playlist_add_tracks(user=self.username_id, tracks=track_list, playlist_id=playlist["id"])
                 found = True
-            elif playlist["name"]=="Generated playlist" and found:
+            elif playlist["name"]==name and found:
                 break
 
-    def playlist_generate(self, track_list:list) -> None:
+    def playlist_generate(self, track_list:list, name: str) -> None:
         """
         Function that generates a playlist with a given track list
         """
@@ -90,16 +90,16 @@ class PlaylistGenerator():
 
         description = f"""An automatically generated 🤖 playlist. ⚙️ Generated using Zempui's playlist generator"""
         
-        sp.user_playlist_create(user=self.username_id, name="Generated playlist", public=True, description=description)
+        sp.user_playlist_create(user=self.username_id, name=name, public=True, description=description)
 
 
         found:bool = False
         for playlist in sp.current_user_playlists()["items"]:
-            if playlist["name"]=="Generated playlist" and not found:
+            if playlist["name"]==name and not found:
                 for tl in tqdm(self.divide_array(track_list, 80), desc="Adding tracks to playlist"): # To surpass the limitation of 100 tracks per request
-                    self.add_tracks(track_list=tl)
+                    self.add_tracks(tl, name)
                 found = True
-            elif playlist["name"]=="Generated playlist" and found:
+            elif playlist["name"]==name and found:
                 # In case of there being more than one playlist with the name "Generated playlist, the tracks will only be added to the latest."
                 break
 
