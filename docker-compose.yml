@@ -2,11 +2,13 @@ version: "3.3"
 services:
   python:
     build: ./python/
+    restart: always
     networks:
       network:
         ipv4_address: 10.5.0.7
   angular:
     build: ./react/
+    restart: always
     ports:
       - "80:80"
       - "443:443"
