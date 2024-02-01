@@ -82,9 +82,7 @@ class ApiCall <P extends Path, M extends PathMethod<P>> {
     const status: number = res.status;
     const response: any = {}
     response[status] = {
-      'content': {
-        'application/json': await res.json()
-      }
+      'schema': await res.json()
     }
     return response;
   }
