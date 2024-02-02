@@ -19,6 +19,37 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
   const [searchState, formSearchAction] = useFormState(searchAction, {error: '', object: [], status: 0});
   const [artistsFound, setArtistsFound] = useState(false)
   const [inputValue, setInputValue] = useState('');
+  const [artists, setArtists] = useState<any[]>([]); // Lista de artistas original
+  const [draggedArtist, setDraggedArtist] = useState<any | null>(null); // Artista que se está arrastrando
+
+  const handleMouseDown = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    setDraggedArtist(event.currentTarget);
+  };
+  
+  const handleMouseMove = (event: MouseEvent) => {
+    console.log(draggedArtist)
+    if (draggedArtist) {
+      // Actualiza la posición del elemento arrastrado
+      draggedArtist.style.left = `${event.pageX}px`;
+      draggedArtist.style.top = `${event.pageY}px`;
+    }
+  };
+  
+  const handleMouseUp = () => {
+    setDraggedArtist(null);
+  };
+
+  useEffect(() => {
+    // Agregar eventos de mouse globales para manejar el arrastrar y soltar
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      // Limpiar eventos de mouse cuando el componente se desmonte
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [draggedArtist]);
 
   const handleInputChange = (event: any) => {
     setInputValue(event.target.value);
@@ -47,14 +78,15 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
   }, [searchState.object])
 
   return (
-<div className="max-w-lg mx-auto">
+<div className="max-w-lg mx-auto flex">
   {!loggedIn && (
     <form action={formLoginAction} className="mb-4">
       <SubmitButton id='loginButton' defaultText="Inicia sesión con Spotify" pendingText="Serás redirigido en breve..." />
     </form>
   )}
 
-  {loggedIn && (
+  {loggedIn && (<>
+    <div className="w-1/2">
     <form action={formSearchAction} className="mb-4">
       <div className="flex items-center border rounded-md overflow-hidden">
         <input
@@ -70,11 +102,12 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
         {inputValue && (
           <button
             onClick={handleClearButtonClick}
-            className="bg-gray-300 text-gray-600 px-4 py-2 rounded focus:outline-none hover:bg-gray-400"
+            className="bg-gray-300 text-gray-600 px-4 focus:outline-none hover:bg-gray-400"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-6 w-6"
+              fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
@@ -91,16 +124,35 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
 
       <SubmitButton id='searchButton' defaultText="" pendingText="" />
     </form>
-  )}
 
-  {artistsFound &&
-    searchState.object.map((value: any) => (
-      <div key={value.id} className="flex items-center bg-white shadow-md rounded-lg p-4 hover:shadow-lg cursor-pointer mb-4">
-        <img src={value.image.url} alt={value.name} className="h-16 w-16 rounded-full mr-4" />
-        <p className="text-lg">{value.name}</p>
+    <div className="mb-4">
+    {artistsFound &&
+    
+      searchState.object.map((value: any) => (
+        <div
+          key={value.id}
+          className="flex items-center bg-white rounded-lg p-4 hover:shadow-lg cursor-pointer mb-4 border border-gray-300"
+          onMouseDown={handleMouseDown}
+          style={{ position: 'absolute' }} // Cambia la posición a absoluta para que puedas moverlos libremente
+        >
+          <img src={value.image.url} alt={value.name} className="h-16 w-16 rounded-full mr-4" />
+          <p className="text-lg">{value.name}</p>
+        </div>
+      ))}
       </div>
-    ))
-  }
+  </div>
+
+  <div
+    className="w-1/2 border rounded-md p-4"
+  >
+    <h2>Artistas seleccionados:</h2>
+    <ul>
+      {/* {selectedArtists.map((artist, index) => (
+        <li key={index}>{artist}</li>
+      ))} */}
+    </ul>
+  </div>
+  </>)}
 </div>
 
   );
