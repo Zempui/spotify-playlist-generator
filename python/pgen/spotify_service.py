@@ -28,7 +28,7 @@ class SpotifyService():
         
         sp = spotipy.Spotify(auth_manager = self.auth)
         artists = sp.search(q=artist_name, type="artist", limit=10)
-        artists = [{"name": artist["name"], "id": artist["id"]} for artist in artists["artists"]["items"]]
+        artists = [{"name": artist["name"], "id": artist["id"], "image": artist["images"][-1]} for artist in artists["artists"]["items"]]
         return artists
 
     def create_playlist(self, artists: list, name):

@@ -1,25 +1,16 @@
-'use client'
+'use server'
 
-import { useFormState, useFormStatus } from "react-dom";
-import { loginAction } from "./serverComponents";
+import { cookies } from "next/headers";
+import ClientComponent from "./clientComponent";
 
-const SubmitButton = ({defaultText, pendingText}: {defaultText: string, pendingText: string}) => {
-	const { pending } = useFormStatus();
+export default async function Home() {
+  const cookieStore = cookies();
+  const code: string = cookieStore.get('code')?.value ?? '';
+  const loggedIn = code !== '';
 
-	return (
-		<button type='submit' aria-disabled={pending} disabled={pending}>
-			{pending && pendingText || !pending && defaultText}
-		</button>
-	)
-}
-
-export default function Home() {
-  const [state, formAction] = useFormState(loginAction, {});
   return (
     <>
-      <form action={formAction}>
-        <SubmitButton defaultText="Inicia sesión con spotify" pendingText="Serás redirigido en breve..."/>
-      </form>
+    <ClientComponent loggedIn={loggedIn}/>
     </>
   );
 }

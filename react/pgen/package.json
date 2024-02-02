@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start -p 80",
     "lint": "next lint",
-    "load-definition": "npx openapi-typescript@5.4.1 http://python:5000/apispec_1.json --output src/app/api/api-definition.ts"
+    "load-definition": "npx openapi-typescript@5.4.1 http://python:5000/apispec_1.json --output src/api/api-definition.ts"
   },
   "dependencies": {
     "react": "^18",

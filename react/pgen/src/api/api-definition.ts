@@ -65,17 +65,19 @@ export interface paths {
       };
     };
   };
-  "/search_artist": {
+  "/search_artist/{query}": {
     get: {
       parameters: {
-        query: {
+        path: {
           /** The name of the artist to search for. */
           query: string;
         };
       };
       responses: {
         /** A list of artists matching the query. */
-        200: unknown;
+        200: {
+          schema: unknown[];
+        };
         /** No query provided. */
         400: unknown;
         /** You must login first. */

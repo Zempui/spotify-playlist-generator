@@ -4,7 +4,7 @@ import { cookies, headers } from 'next/headers'
 import { redirect } from 'next/navigation';
 import { paths } from './api-definition';
 
-export type StateType = {object: {[x: string]: any}, errors: {[x: string]: string}, status: number}
+export type StateType = {object: any, error: string, status: number}
 
 const API_URL = "http://python:5000"
 const LOGIN = '/login'
@@ -19,15 +19,15 @@ type Path = keyof paths;
 type PathMethod<P extends Path> = keyof paths[P];
 
 type RequestParams<P extends Path, M extends PathMethod<P>> = paths[P][M] extends {
-  parameters: {path: any};
+  parameters: {query: any};
 }
-  ? paths[P][M]['parameters']['path']
+  ? paths[P][M]['parameters']['query']
   : undefined;
 
 type RequestBody<P extends Path, M extends PathMethod<P>> = paths[P][M] extends {
-  requestBody: { content: any };
+  body: { body: any };
 }
-  ? paths[P][M]['requestBody']['content']['application/json']
+  ? paths[P][M]['body']['body']['application/json']
   : undefined;
 
 type ResponseType<P extends Path, M extends PathMethod<P>> = paths[P][M] extends {
@@ -66,8 +66,7 @@ class ApiCall <P extends Path, M extends PathMethod<P>> {
     let options: any = {
       method: this.method.toString(),
       cache: 'no-store',
-      // TODO: hay que meterlo en la sesión
-      headers: { 'Content-Type': 'application/json', 'Authorization': cookieStore.get(authorizationTokenCookieName())?.value ?? '' }
+      headers: { 'Content-Type': 'application/json', 'Authorization': cookieStore.get('code')?.value ?? ''}
     };
 
     if (tags.length !== 0) {
@@ -127,16 +126,16 @@ class ApiCallHandlerClass <P extends Path, M extends PathMethod<P>> {
 
     if (this.response[200]) {
       return {
-        object: this.response[200].content["application/json"],
-        errors: {},
+        object: this.response[200].sechema,
+        error: '',
         status: 200
       }
     }
 
     if (this.response[201]) {
       return {
-        object: this.response[201].content["application/json"],
-        errors: {},
+        object: this.response[201].sechema,
+        error: '',
         status: 201
       }
     }
@@ -144,7 +143,7 @@ class ApiCallHandlerClass <P extends Path, M extends PathMethod<P>> {
     if (this.response[400]) {
       return {
         object: {},
-        errors: this.response[400].content["application/json"],
+        error: this.response[400].sechema,
         status: 400
       }
     }
