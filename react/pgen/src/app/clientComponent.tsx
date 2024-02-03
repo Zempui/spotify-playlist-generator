@@ -21,21 +21,51 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
   const [inputValue, setInputValue] = useState('');
   const [artists, setArtists] = useState<any[]>([]); // Lista de artistas original
   const [draggedArtist, setDraggedArtist] = useState<any | null>(null); // Artista que se está arrastrando
+  const [mouseOffset, setMouseOffset] = useState<{ x: number; y: number }>({x: 0, y: 0});
 
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    setDraggedArtist(event.currentTarget);
+    const originalElement = event.currentTarget;
+    const cloneElement = originalElement.cloneNode(true) as HTMLDivElement; // Clonar el elemento
+    const rect = originalElement.getBoundingClientRect(); // Obtener las coordenadas del elemento original
+    const offsetX = event.clientX - rect.left; // Calcular el desplazamiento X
+    const offsetY = event.clientY - rect.top; // Calcular el desplazamiento Y
+
+    // Establecer estilos para la copia
+    cloneElement.style.position = 'absolute';
+    cloneElement.style.left = `${event.clientX - offsetX}px`;
+    cloneElement.style.top = `${event.clientY - offsetY}px`;
+    cloneElement.style.width = `${rect.width}px`; // Mantener la misma anchura que el elemento original
+    cloneElement.style.height = `${rect.height}px`; // Mantener la misma altura que el elemento original
+    cloneElement.style.transform = 'rotate(2deg)'; // Aplicar una ligera rotación al elemento clonado
+    cloneElement.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)'; // Agregar sombra al elemento clonado
+
+    // Añadir la copia al DOM
+    document.body.appendChild(cloneElement);
+
+    // Establecer la copia como el elemento arrastrado
+    setDraggedArtist(cloneElement);
+
+    // Guardar la posición del ratón con respecto al elemento arrastrado
+    setMouseOffset({ x: offsetX, y: offsetY });
   };
   
   const handleMouseMove = (event: MouseEvent) => {
-    console.log(draggedArtist)
     if (draggedArtist) {
-      // Actualiza la posición del elemento arrastrado
-      draggedArtist.style.left = `${event.pageX}px`;
-      draggedArtist.style.top = `${event.pageY}px`;
+      // Calcular la nueva posición del elemento arrastrado en relación con la posición del ratón
+      const newX = event.clientX - mouseOffset.x;
+      const newY = event.clientY - mouseOffset.y;
+
+      // Actualizar la posición del elemento arrastrado
+      draggedArtist.style.left = `${newX}px`;
+      draggedArtist.style.top = `${newY}px`;
     }
   };
   
   const handleMouseUp = () => {
+    if (draggedArtist) {
+      draggedArtist.style.boxShadow = '0 0px 0px rgba(0, 0, 0, 0)'
+      draggedArtist.style.transform = 'rotate(0deg)'
+    }
     setDraggedArtist(null);
   };
 
@@ -131,9 +161,8 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
       searchState.object.map((value: any) => (
         <div
           key={value.id}
-          className="flex items-center bg-white rounded-lg p-4 hover:shadow-lg cursor-pointer mb-4 border border-gray-300"
+          className="flex items-center bg-white rounded-lg p-4 cursor-pointer mb-4 border border-gray-300"
           onMouseDown={handleMouseDown}
-          style={{ position: 'absolute' }} // Cambia la posición a absoluta para que puedas moverlos libremente
         >
           <img src={value.image.url} alt={value.name} className="h-16 w-16 rounded-full mr-4" />
           <p className="text-lg">{value.name}</p>
