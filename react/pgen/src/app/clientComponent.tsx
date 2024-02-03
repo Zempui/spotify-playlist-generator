@@ -19,11 +19,13 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
   const [searchState, formSearchAction] = useFormState(searchAction, {error: '', object: [], status: 0});
   const [artistsFound, setArtistsFound] = useState(false)
   const [inputValue, setInputValue] = useState('');
-  const [artists, setArtists] = useState<any[]>([]); // Lista de artistas original
+  const [selectedArtists, setSelectedArtists] = useState<any[]>([]); // Lista de artistas elegidos
   const [draggedArtist, setDraggedArtist] = useState<any | null>(null); // Artista que se está arrastrando
   const [mouseOffset, setMouseOffset] = useState<{ x: number; y: number }>({x: 0, y: 0});
+  const [draggedArtistData, setDraggedArtistData] = useState<any | null>(null);
+  const [isDraggingOver, setIsDraggingOver] = useState<boolean[]>([false]);
 
-  const handleMouseDown = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+  const handleMouseDown = (value: any, event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     const originalElement = event.currentTarget;
     const cloneElement = originalElement.cloneNode(true) as HTMLDivElement; // Clonar el elemento
     const rect = originalElement.getBoundingClientRect(); // Obtener las coordenadas del elemento original
@@ -47,6 +49,8 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
 
     // Guardar la posición del ratón con respecto al elemento arrastrado
     setMouseOffset({ x: offsetX, y: offsetY });
+
+    setDraggedArtistData(value)
   };
   
   const handleMouseMove = (event: MouseEvent) => {
@@ -58,13 +62,22 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
       // Actualizar la posición del elemento arrastrado
       draggedArtist.style.left = `${newX}px`;
       draggedArtist.style.top = `${newY}px`;
+      const selectedArtistsDiv = document.getElementById('selectedArtists');
+      if (selectedArtistsDiv && event.clientX >= selectedArtistsDiv.offsetLeft && event.clientX <= (selectedArtistsDiv.offsetLeft + selectedArtistsDiv.offsetWidth) && event.clientY >= selectedArtistsDiv.offsetTop && event.clientY <= (selectedArtistsDiv.offsetTop + selectedArtistsDiv.offsetHeight)) {
+        isDraggingOver[0] = true;
+      } else {
+        isDraggingOver[0] = false;
+      }
     }
   };
-  
+
   const handleMouseUp = () => {
     if (draggedArtist) {
-      draggedArtist.style.boxShadow = '0 0px 0px rgba(0, 0, 0, 0)'
-      draggedArtist.style.transform = 'rotate(0deg)'
+      draggedArtist.remove()
+      if (isDraggingOver[0] && !selectedArtists.some((artist) => artist.id === draggedArtistData.id)) {
+        selectedArtists.push(draggedArtistData)
+      }
+      setDraggedArtistData(null)
     }
     setDraggedArtist(null);
   };
@@ -162,7 +175,7 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
         <div
           key={value.id}
           className="flex items-center bg-white rounded-lg p-4 cursor-pointer mb-4 border border-gray-300"
-          onMouseDown={handleMouseDown}
+          onMouseDown={(e) => handleMouseDown(value, e)}
         >
           <img src={value.image.url} alt={value.name} className="h-16 w-16 rounded-full mr-4" />
           <p className="text-lg">{value.name}</p>
@@ -173,13 +186,22 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
 
   <div
     className="w-1/2 border rounded-md p-4"
+    id="selectedArtists"
   >
     <h2>Artistas seleccionados:</h2>
-    <ul>
-      {/* {selectedArtists.map((artist, index) => (
-        <li key={index}>{artist}</li>
-      ))} */}
-    </ul>
+    <div 
+      className="mb-4" >
+      {selectedArtists.map((artist) => (
+        <div
+        key={artist.id}
+        className="flex items-center bg-white rounded-lg p-4 mb-4 border border-gray-300"
+        onMouseDown={(e) => handleMouseDown(artist, e)}
+      >
+        <img src={artist.image.url} alt={artist.name} className="h-16 w-16 rounded-full mr-4" />
+        <p className="text-lg">{artist.name}</p>
+      </div>
+      ))}
+    </div>
   </div>
   </>)}
 </div>
