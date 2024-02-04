@@ -24,6 +24,7 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
   const [mouseOffset, setMouseOffset] = useState<{ x: number; y: number }>({x: 0, y: 0});
   const [draggedArtistData, setDraggedArtistData] = useState<any | null>(null);
   const [isDraggingOver, setIsDraggingOver] = useState<boolean[]>([false]);
+  const [isDragging, setIsDragging] = useState(false);
 
   const handleMouseDown = (value: any, event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     const originalElement = event.currentTarget;
@@ -40,6 +41,7 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
     cloneElement.style.height = `${rect.height}px`; // Mantener la misma altura que el elemento original
     cloneElement.style.transform = 'rotate(2deg)'; // Aplicar una ligera rotación al elemento clonado
     cloneElement.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)'; // Agregar sombra al elemento clonado
+    cloneElement.style.zIndex = '12';
 
     // Añadir la copia al DOM
     document.body.appendChild(cloneElement);
@@ -50,7 +52,8 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
     // Guardar la posición del ratón con respecto al elemento arrastrado
     setMouseOffset({ x: offsetX, y: offsetY });
 
-    setDraggedArtistData(value)
+    setDraggedArtistData(value);
+    setIsDragging(true);
   };
   
   const handleMouseMove = (event: MouseEvent) => {
@@ -80,6 +83,7 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
       setDraggedArtistData(null)
     }
     setDraggedArtist(null);
+    setIsDragging(false);
   };
 
   useEffect(() => {
@@ -106,6 +110,13 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
     searchState.object = []
   };
 
+  const handleDeleteArtist = (artistId: string) => {
+    // Filtrar la lista de artistas para eliminar el que tiene el ID proporcionado
+    const updatedArtists = selectedArtists.filter((artist) => artist.id !== artistId);
+    // Actualizar el estado con la nueva lista de artistas sin el eliminado
+    setSelectedArtists(updatedArtists);
+  };
+
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (inputValue !== '') {
@@ -121,7 +132,7 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
   }, [searchState.object])
 
   return (
-<div className="max-w-lg mx-auto flex">
+<div className="mx-auto flex">
   {!loggedIn && (
     <form action={formLoginAction} className="mb-4">
       <SubmitButton id='loginButton' defaultText="Inicia sesión con Spotify" pendingText="Serás redirigido en breve..." />
@@ -129,7 +140,22 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
   )}
 
   {loggedIn && (<>
-    <div className="w-1/2">
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(0, 0, 0, 0.25)',
+        transition: 'opacity 0.3s ease',
+        opacity: isDragging ? 1 : 0,
+        zIndex: 10,
+        pointerEvents: 'none',
+      }}
+    />
+    <div className="w-1/2 m-4"
+    style={{ minWidth: 'fit-content' }}>
     <form action={formSearchAction} className="mb-4">
       <div className="flex items-center border rounded-md overflow-hidden">
         <input
@@ -145,7 +171,7 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
         {inputValue && (
           <button
             onClick={handleClearButtonClick}
-            className="bg-gray-300 text-gray-600 px-4 focus:outline-none hover:bg-gray-400"
+            className="text-gray-600 px-4 py-2 rounded-full focus:outline-none hover:bg-gray-200 transition-colors duration-300 flex items-center justify-center"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -165,6 +191,7 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
         )}
       </div>
 
+
       <SubmitButton id='searchButton' defaultText="" pendingText="" />
     </form>
 
@@ -174,7 +201,7 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
       searchState.object.map((value: any) => (
         <div
           key={value.id}
-          className="flex items-center bg-white rounded-lg p-4 cursor-pointer mb-4 border border-gray-300"
+          className="flex items-center bg-white rounded-lg p-4 cursor-pointer mb-4 border border-gray-300 hover:shadow-md"
           onMouseDown={(e) => handleMouseDown(value, e)}
         >
           <img src={value.image.url} alt={value.name} className="h-16 w-16 rounded-full mr-4" />
@@ -185,24 +212,41 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
   </div>
 
   <div
-    className="w-1/2 border rounded-md p-4"
+    className="w-1/2 border rounded-md p-4 overflow-auto my-4 mx-6 bg-white"
     id="selectedArtists"
+    style={{ height: '100vh', minWidth: 'fit-content', zIndex: 11}}
   >
     <h2>Artistas seleccionados:</h2>
-    <div 
-      className="mb-4" >
+    <div className="mb-4">
       {selectedArtists.map((artist) => (
         <div
-        key={artist.id}
-        className="flex items-center bg-white rounded-lg p-4 mb-4 border border-gray-300"
-        onMouseDown={(e) => handleMouseDown(artist, e)}
-      >
-        <img src={artist.image.url} alt={artist.name} className="h-16 w-16 rounded-full mr-4" />
-        <p className="text-lg">{artist.name}</p>
-      </div>
+          key={artist.id}
+          className="flex items-center bg-white rounded-lg p-4 mt-4 border border-gray-300 relative"
+        >
+          <img src={artist.image.url} alt={artist.name} className="h-16 w-16 rounded-full mr-4" />
+          <p className="text-lg">{artist.name}</p>
+          {/* Icono de papelera */}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 absolute top-1/2 -translate-y-1/2 right-4 cursor-pointer text-gray-400 hover:text-gray-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            onClick={() => handleDeleteArtist(artist.id)}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </div>
+        
       ))}
     </div>
   </div>
+
   </>)}
 </div>
 
