@@ -25,9 +25,9 @@ type RequestParams<P extends Path, M extends PathMethod<P>> = paths[P][M] extend
   : undefined;
 
 type RequestBody<P extends Path, M extends PathMethod<P>> = paths[P][M] extends {
-  body: { body: any };
+  parameters: {body: { body: any }};
 }
-  ? paths[P][M]['body']['body']['application/json']
+  ? paths[P][M]['parameters']['body']['body']
   : undefined;
 
 type ResponseType<P extends Path, M extends PathMethod<P>> = paths[P][M] extends {

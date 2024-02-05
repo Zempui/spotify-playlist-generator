@@ -38,3 +38,14 @@ export const searchAction = async (revState: {[x: string]: any}, formData: FormD
     
     return await apiCall.fetch();
 }
+
+export const createPlaylistAction = async (revState: {[x: string]: any}, formData: FormData): Promise<{[x: string]: any}> => {
+    const selectedArtistsJSON = formData.get('selectedArtists') as string;
+    const selectedArtists = JSON.parse(selectedArtistsJSON).map((value: any) => value.name);
+    const playlistName = formData.get('playlistName') as string;
+
+    const apiCall = ApiCallHandler('/create_playlist', 'post', {}, {artists: selectedArtists, name: playlistName})
+    
+    const res = await apiCall.fetch();
+    return revState;
+}
