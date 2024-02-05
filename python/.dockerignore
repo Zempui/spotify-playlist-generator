@@ -1,0 +1,5 @@
+pyright*
+python-language-server*
+devcontainers*
+pgen/.vscode-*
+pgen/__pycache__/

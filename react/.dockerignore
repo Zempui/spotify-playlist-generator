@@ -1,0 +1,5 @@
+pgen/node_modules/
+pgen/.next/
+pgen/.vscode-server/
+pgen/.ash_history
+pgen/next-end.d.ts

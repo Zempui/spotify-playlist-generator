@@ -5,20 +5,20 @@ services:
     restart: always
     networks:
       network:
-        ipv4_address: 10.5.0.7
-  angular:
+        ipv4_address: 10.6.0.7
+  react:
     build: ./react/
     restart: always
     ports:
-      - "80:80"
-      - "443:443"
+      - "18080:80"
+      # - "443:443"
     networks:
       network:
-        ipv4_address: 10.5.0.8
+        ipv4_address: 10.6.0.8
 
 networks:
   network:
     driver: bridge
     ipam:
       config:
-        - subnet: 10.5.0.0/16
+        - subnet: 10.6.0.0/16

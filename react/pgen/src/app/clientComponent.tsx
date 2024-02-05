@@ -149,7 +149,7 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
 
   return (
     <div className="text-center">
-      <h1 className="text-3xl font-bold mb-8">Zempui's playlist generator</h1>
+      <h1 className="text-3xl font-bold mb-8">Zempui&apos;s playlist generator</h1>
       {loggedIn && 
       <div className="mx-auto flex flex-col items-center">
         <form className="mt-8 flex flex-col items-center" action={formCreatePlaylistAction}>
