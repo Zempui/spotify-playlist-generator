@@ -5,8 +5,8 @@ import ClientComponent from "./clientComponent";
 
 export default async function Home() {
   const cookieStore = cookies();
-  const code: string = cookieStore.get('code')?.value ?? '';
-  const loggedIn = code !== '';
+  const session: string = cookieStore.get('session')?.value ?? '';
+  const loggedIn = session !== '';
 
   return (
     <>

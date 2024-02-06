@@ -2,4 +2,4 @@ client_id: client_id
 client_secret: client_secret
 redirect_uri: http://localhost:5000/callback
 scope: comma, separated, values
-secret: esto-es-una-clave-muy-secreta
+secret: clave muy secreta

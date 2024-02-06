@@ -41,6 +41,7 @@ class ApiCall <P extends Path, M extends PathMethod<P>> {
   method: M;
   params: RequestParams<P, M> extends undefined ? {} : RequestParams<P, M>;
   body: RequestBody<P, M> extends undefined ? {} : RequestBody<P, M>;
+  setCookies: string[];
 
   constructor(
     url: P,
@@ -52,21 +53,29 @@ class ApiCall <P extends Path, M extends PathMethod<P>> {
       this.method = method;
       this.params = params;
       this.body = body;
-
+      this.setCookies = [];
   }
 
   async fetch(tags: string[]): Promise<ResponseType<P, M>> {
     const cookieStore: any = cookies()
 
     let urlWithParams = API_URL + this.url;
+
+    let queryParams = [];
+
     for (const key in this.params) {
-      urlWithParams = urlWithParams.replace(`{${key}}`, this.params[key].toString());
+      queryParams.push(`${key}=${encodeURIComponent(this.params[key].toString())}`);
     }
+
+    if (queryParams.length > 0) {
+      urlWithParams += '?' + queryParams.join('&');
+    }
+    console.log(urlWithParams)
     
     let options: any = {
       method: this.method.toString(),
       cache: 'no-store',
-      headers: { 'Content-Type': 'application/json', 'Authorization': cookieStore.get('code')?.value ?? ''}
+      headers: { 'Content-Type': 'application/json', 'Cookie': 'session=' + cookieStore.get('session')?.value ?? ''}
     };
 
     if (tags.length !== 0) {
@@ -80,6 +89,7 @@ class ApiCall <P extends Path, M extends PathMethod<P>> {
     const res = await fetch(urlWithParams, options);
     const status: number = res.status;
     const response: any = {}
+    this.setCookies = res.headers.getSetCookie()
     response[status] = {
       'schema': await res.json()
     }

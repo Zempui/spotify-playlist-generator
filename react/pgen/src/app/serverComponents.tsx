@@ -25,7 +25,7 @@ export const searchAction = async (revState: {[x: string]: any}, formData: FormD
         return revState;
     }
 
-    const apiCall = ApiCallHandler('/search_artist/{query}', 'get', {query: query}, {})
+    const apiCall = ApiCallHandler('/search_artist', 'get', {query: query}, {})
         .onResponse({
             200(response) {
                 return {

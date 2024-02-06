@@ -166,9 +166,12 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
       </div>}
       <div className="mx-auto flex">
         {!loggedIn && (
-          <form action={formLoginAction} className="mb-4">
-            <SubmitButton id='loginButton' defaultText="Inicia sesión con Spotify" pendingText="Serás redirigido en breve..." />
-          </form>
+          <div className="mx-auto flex flex-col items-center">
+            <form action={formLoginAction} className="mb-4">
+              <SubmitButton id='loginButton' defaultText="Inicia sesión con Spotify" pendingText="Serás redirigido en breve..."
+                className="py-3 px-6 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition-colors duration-300 disabled:opacity-50" />
+            </form>
+          </div>
         )}
 
         {loggedIn && (<>

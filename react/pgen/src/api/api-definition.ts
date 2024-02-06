@@ -65,7 +65,7 @@ export interface paths {
       };
     };
   };
-  "/search_artist/{query}": {
+  "/search_artist": {
     get: {
       parameters: {
         path: {

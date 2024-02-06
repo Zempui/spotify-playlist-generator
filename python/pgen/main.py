@@ -1,13 +1,15 @@
 from dataclasses import asdict
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session
 import yaml
 from spotipy.oauth2 import SpotifyOAuth
 from error import APIError
 from playlist_generator import PlaylistGenerator
 from spotify_service import SpotifyService
 from flasgger import Swagger
+from spotipy.cache_handler import FlaskSessionCacheHandler
 
 app = Flask(__name__)
+app.secret_key = ''
 app.config['SWAGGER'] = {
     'title': 'Flasgger RESTful',
     'uiversion': 3
@@ -17,10 +19,13 @@ swagger = Swagger(app)
 def load_oauth_config():
     with open('config.yml', 'r', encoding='utf-8') as f:
         config = yaml.safe_load(f)
-    sp = SpotifyOAuth(client_id=config["client_id"], client_secret=config["client_secret"], redirect_uri=config["redirect_uri"], scope=config["scope"])
+
+    app.secret_key = config['secret']
+    cache_handler = FlaskSessionCacheHandler(session)
+    sp = SpotifyOAuth(client_id=config["client_id"], client_secret=config["client_secret"], redirect_uri=config["redirect_uri"], scope=config["scope"], cache_handler=cache_handler, open_browser=False)
     return sp
 
-def loadSpotifyService(code):
+def loadSpotifyService(code='code'):
     sp = SpotifyService()
     sp.auth = SPOTIFY_OAUTH
     sp.auth.get_access_token(code, as_dict=False)
@@ -83,13 +88,15 @@ def callback():
               description: The username of the logged in user.
     """
     code = request.args.get('code')
+    if not code:
+        return asdict(APIError('No code provided', 400))
     sp = loadSpotifyService(code)
     sp.auth.get_access_token(code, as_dict=False)
     username = sp.get_current_user()['id']
     return {"username": username}
 
-@app.route('/search_artist/<query>')
-def search_artist(query):
+@app.route('/search_artist')
+def search_artist():
     """Devuelve los artistas que coinciden con la búsqueda
     ---
     tags:
@@ -112,16 +119,12 @@ def search_artist(query):
       500:
         description: An error occurred.
     """
+    query = request.args.get('query')
     if not query:
         return asdict(APIError('No query provided', 400))
     
-    auth_header = request.headers.get('Authorization')
-    
-    if not auth_header:
-        return asdict(APIError('You must login first', 401))
-    
     try:
-        return loadSpotifyService(auth_header).search_artist(query)
+        return loadSpotifyService().search_artist(query)
     except Exception as e:
         return asdict(APIError(str(e), 500))
 
@@ -165,17 +168,11 @@ def create_playlist():
     """
     artists = request.json.get('artists')
     name = request.json.get('name')
-    
-    
-    auth_header = request.headers.get('Authorization')
-    
-    if not auth_header:
-        return asdict(APIError('You must login first', 401))
-    
+
     if not artists:
         return asdict(APIError('No artists provided', 400))
     try:
-        loadSpotifyService(auth_header).create_playlist(artists, name)
+        loadSpotifyService().create_playlist(artists, name)
         return {'message': 'Playlist created successfully'}
     except Exception as e:
         return asdict(APIError(str(e), 500))
