@@ -70,7 +70,6 @@ class ApiCall <P extends Path, M extends PathMethod<P>> {
     if (queryParams.length > 0) {
       urlWithParams += '?' + queryParams.join('&');
     }
-    console.log(urlWithParams)
     
     let options: any = {
       method: this.method.toString(),

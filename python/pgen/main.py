@@ -25,15 +25,14 @@ def load_oauth_config():
     sp = SpotifyOAuth(client_id=config["client_id"], client_secret=config["client_secret"], redirect_uri=config["redirect_uri"], scope=config["scope"], cache_handler=cache_handler, open_browser=False)
     return sp
 
+SPOTIFY_OAUTH = load_oauth_config()
+
 def loadSpotifyService(code='code'):
     sp = SpotifyService()
     sp.auth = SPOTIFY_OAUTH
     sp.auth.get_access_token(code, as_dict=False)
     sp.playlist_generator = PlaylistGenerator(auth_manager=SPOTIFY_OAUTH, username_id=sp.get_current_user()['id'])
     return sp
-
-
-SPOTIFY_OAUTH = load_oauth_config()
 
 @app.errorhandler(Exception)
 def handle_exception(e):
@@ -91,7 +90,6 @@ def callback():
     if not code:
         return asdict(APIError('No code provided', 400))
     sp = loadSpotifyService(code)
-    sp.auth.get_access_token(code, as_dict=False)
     username = sp.get_current_user()['id']
     return {"username": username}
 
