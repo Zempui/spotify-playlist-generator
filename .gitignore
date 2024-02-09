@@ -47,5 +47,5 @@ Thumbs.db
 
 node_modules
 .angular
-
+.env
 dist

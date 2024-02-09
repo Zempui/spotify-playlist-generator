@@ -7,6 +7,7 @@ from playlist_generator import PlaylistGenerator
 from spotify_service import SpotifyService
 from flasgger import Swagger
 from spotipy.cache_handler import FlaskSessionCacheHandler
+import os
 
 app = Flask(__name__)
 app.secret_key = ''
@@ -17,12 +18,9 @@ app.config['SWAGGER'] = {
 swagger = Swagger(app)
 
 def load_oauth_config():
-    with open('config.yml', 'r', encoding='utf-8') as f:
-        config = yaml.safe_load(f)
-
-    app.secret_key = config['secret']
+    app.secret_key = os.getenv('SECRET')
     cache_handler = FlaskSessionCacheHandler(session)
-    sp = SpotifyOAuth(client_id=config["client_id"], client_secret=config["client_secret"], redirect_uri=config["redirect_uri"], scope=config["scope"], cache_handler=cache_handler, open_browser=False)
+    sp = SpotifyOAuth(client_id=os.getenv('CLIENT_ID'), client_secret=os.getenv('CLIENT_SECRET'), redirect_uri=os.getenv('REDIRECT_URI'), scope=os.getenv('SCOPE'), cache_handler=cache_handler, open_browser=False)
     return sp
 
 SPOTIFY_OAUTH = load_oauth_config()
