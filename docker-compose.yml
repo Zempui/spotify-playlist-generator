@@ -3,6 +3,12 @@ services:
   python:
     build: ./python/
     restart: always
+    environment:
+      - CLIENT_ID=${CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET}
+      - REDIRECT_URI=${REDIRECT_URI}
+      - SCOPE=${SCOPE}
+      - SECRET=${SECRET}
     networks:
       network:
         ipv4_address: 10.6.0.7

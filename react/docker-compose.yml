@@ -6,6 +6,12 @@ services:
       - ../python/pgen:/home/pgen
       - ../python:/temp
     command: sh -c "cd /temp && pip install -r requirements.txt && cd /home/pgen && python /home/pgen/main.py"
+    environment:
+      - CLIENT_ID=${CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET}
+      - REDIRECT_URI=${REDIRECT_URI}
+      - SCOPE=${SCOPE}
+      - SECRET=${SECRET}
     networks:
       dev_network:
         ipv4_address: 10.4.0.7

@@ -8,6 +8,12 @@ services:
     ports:
       - "6000:5000"
     command: sh -c "cd /temp && pip install -r requirements.txt && cd /home/pgen && tail -f /dev/null"
+    environment:
+      - CLIENT_ID=${CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET}
+      - REDIRECT_URI=${REDIRECT_URI}
+      - SCOPE=${SCOPE}
+      - SECRET=${SECRET}
     networks:
       dev_network:
         ipv4_address: 10.4.0.7
