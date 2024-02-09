@@ -4,7 +4,7 @@ import { useFormState, useFormStatus } from "react-dom";
 import { createPlaylistAction, loginAction, searchAction } from "./serverComponents";
 import { useEffect, useState } from "react";
 
-const SubmitButton = ({id, defaultText, pendingText, disabled=false, className=''}: {id: string, defaultText: string, pendingText: string, disabled?: boolean, className?: string}) => {
+const SubmitButton = ({id, defaultText, pendingText, disabled=false, className=''}: {id: string, defaultText: any, pendingText: string, disabled?: boolean, className?: string}) => {
 	const { pending } = useFormStatus();
 
 	return (
@@ -149,21 +149,24 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
 
   return (
     <div className="text-center">
-      <h1 className="text-3xl font-bold mb-8">Zempui&apos;s playlist generator</h1>
+      <div style={{ minWidth: 'fit-content', height: '20vh' }}>
+      <h1 className="text-3xl font-bold">Zempui&apos;s playlist generator</h1>
       {loggedIn && 
       <div className="mx-auto flex flex-col items-center">
-        <form className="mt-8 flex flex-col items-center" action={formCreatePlaylistAction}>
-          <input type="text" required={true} name="playlistName" placeholder="Nombre de la playlist" className="text-center py-2 px-4 mb-4 rounded-md focus:outline-none border border-gray-300 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+        <form className="mt-8 flex items-center" action={formCreatePlaylistAction}>
+          <input type="text" required={true} name="playlistName" placeholder="Nombre de la playlist" className="text-center py-2 px-4 mr-2 rounded-md focus:outline-none border border-gray-300 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
           <input type="hidden" name="selectedArtists" value={JSON.stringify(selectedArtists)} />
           <SubmitButton
             id="playlistGeneratorButton"
-            defaultText="Genera tu playlist"
+            defaultText={<><img src='/Spotify_Icon_RGB_White.png' alt='' className='h-8 mr-2' /><p>Genera tu playlist</p></>}
             pendingText="Generando playlist..."
             disabled={selectedArtists.length === 0}
-            className="py-3 px-6 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition-colors duration-300 disabled:opacity-50"
+            className="py-3 px-6 bg-black text-white font-semibold rounded-lg shadow-md hover:bg-black-600 transition-colors duration-300 disabled:opacity-50"
           />
         </form>
-      </div>}
+      </div>
+      }
+      </div>
       <div className="mx-auto flex">
         {!loggedIn && (
           <div className="mx-auto flex flex-col items-center">
@@ -173,7 +176,6 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
             </form>
           </div>
         )}
-
         {loggedIn && (<>
           <div
             style={{
@@ -189,8 +191,8 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
               pointerEvents: 'none',
             }}
           />
-          <div className="w-1/2 m-4"
-          style={{ minWidth: 'fit-content' }}>
+          <div className="w-1/2 m-4 overflow-auto"
+          style={{ minWidth: 'fit-content', height: '70vh' }}>
           <form action={formSearchAction} className="mb-4">
             <div className={`flex items-center border rounded-md overflow-hidden ${isInputFocused ? 'border-blue-500' : 'border-gray-300'}`}>
               <input
@@ -230,59 +232,52 @@ export default function ClientComponent({loggedIn}: {loggedIn: boolean}) {
             <SubmitButton id='searchButton' defaultText="" pendingText="" />
           </form>
 
-          <div className="mb-4">
-          {artistsFound &&
-          
-            searchState.object.map((value: any) => (
-              <div
-                key={value.id}
-                className="flex items-center bg-white rounded-lg p-4 cursor-pointer mb-4 border border-gray-300 hover:shadow-md"
-                onMouseDown={(e) => handleMouseDown(value, e)}
-              >
-                <img src={value.image.url} alt={value.name} className="h-16 w-16 rounded-full mr-4" />
-                <p className="text-lg">{value.name}</p>
-              </div>
-            ))}
-            </div>
+          <div className="columns-3 mb-4 grid grid-cols-3 gap-4" style={{ minWidth: 'fit-content'}}>
+            {artistsFound &&
+              searchState.object.map((value: any) => (
+                <div
+                  key={value.id}
+                  className="flex flex-col items-center bg-white cursor-pointer rounded-lg border border-gray-300 hover:shadow-md p-4"
+                  onMouseDown={(e) => handleMouseDown(value, e)}
+                >
+                  <img draggable={false} src={value.image.url} alt={value.name} height="160px" width="160px" className="h-25 w-25 shadow-md" />
+                  <p className="text-lg mt-4">{value.name}</p>
+                </div>
+              ))}
+          </div>
         </div>
 
         <div
           className="w-1/2 border rounded-md p-4 overflow-auto my-4 mx-6 bg-white"
           id="selectedArtists"
-          style={{ height: '100vh', minWidth: 'fit-content', zIndex: 11}}
+          style={{ height: '70vh', minWidth: 'fit-content', zIndex: 11}}
         >
-          <h2>Artistas seleccionados:</h2>
-          <div className="mb-4">
-            {selectedArtists.map((artist) => (
-              <div
-                key={artist.id}
-                className="flex items-center bg-white rounded-lg p-4 mt-4 border border-gray-300 relative"
-              >
-                <img src={artist.image.url} alt={artist.name} className="h-16 w-16 rounded-full mr-4" />
-                <p className="text-lg">{artist.name}</p>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-12 w-12 p-2 absolute rounded-full top-1/2 focus:outline-none -translate-y-1/2 right-4 cursor-pointer text-gray-400 hover:text-gray-600 hover:bg-gray-200 transition-colors duration-300"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+          {selectedArtists.length === 0 && 
+            <div className="flex justify-center items-center h-full">
+              <h1 className="text-center text-gray-500 text-2xl font-bold">Arrastra a los artistas aquí...</h1>
+            </div>
+          }
+          {selectedArtists.length !== 0 && 
+            <div className="mb-4 columns-3 mb-4 grid grid-cols-3 gap-4 overflow-auto pb-4 bg-white">
+              {selectedArtists.map((artist) => (
+                <div
+                  key={artist.id}
+                  className="flex flex-col items-center bg-white cursor-pointer rounded-lg border border-gray-300 hover:shadow-md p-4 hover:bg-red-50 transition-colors duration-500"
                   onClick={() => handleDeleteArtist(artist.id)}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </div>
-              
-            ))}
+                  <img src={artist.image.url} alt={artist.name} height="160px" width="160px" className="h-25 w-25 shadow-md" />
+                  <p className="text-lg mt-4">{artist.name}</p>
+                </div>
+                
+              ))}
+            </div>
+          }
           </div>
-        </div>
-
         </>)}
       </div>
+      <footer className="fixed bottom-0 left-0 w-full h-10vh flex justify-center items-center bg-black text-white p-1" style={{zIndex: 9999}}>
+        <p>Made for</p><img src="/Spotify_Logo_RGB_White.png" alt="Logo de Spotify" className="h-8 ml-2" />
+      </footer>
     </div>
   );
 }
